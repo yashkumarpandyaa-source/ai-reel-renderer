@@ -9,17 +9,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Render Video
+      - name: Setup FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        with:
+          ffmpeg-version: release
+
+      - name: Make Script Executable
+        run: chmod +x render.sh
+
+      - name: Run Video Render Script
         run: |
-          chmod +x render.sh
-          ./render.sh "${{ github.event.client_payload.img1 }}" "${{ github.event.client_payload.img2 }}" "${{ github.event.client_payload.img3 }}" "${{ github.event.client_payload.audio }}"
+          ./render.sh \
+            "${{ github.event.client_payload.img1 }}" \
+            "${{ github.event.client_payload.img2 }}" \
+            "${{ github.event.client_payload.img3 }}" \
+            "${{ github.event.client_payload.audio }}"
 
-      - name: Release MP4 Asset
+      - name: Create Release & Upload Video
         uses: softprops/action-gh-release@v1
         with:
           tag_name: reel-${{ github.event.client_payload.content_id }}
+          name: Reel ${{ github.event.client_payload.content_id }}
           files: final_reel.mp4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

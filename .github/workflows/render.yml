@@ -1,0 +1,25 @@
+name: Render AI Reel MP4
+
+on:
+  repository_dispatch:
+    types: [render_reel]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Render Video
+        run: |
+          chmod +x render.sh
+          ./render.sh "${{ github.event.client_payload.img1 }}" "${{ github.event.client_payload.img2 }}" "${{ github.event.client_payload.img3 }}" "${{ github.event.client_payload.audio }}"
+
+      - name: Release MP4 Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: reel-${{ github.event.client_payload.content_id }}
+          files: final_reel.mp4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
